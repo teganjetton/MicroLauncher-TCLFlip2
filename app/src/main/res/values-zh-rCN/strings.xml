@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">微型启动器多亲版</string>
+    <string name="notifications">通知</string>
     <string name="menu">功能表</string>
     <string name="contact">通讯录</string>
     <string name="power_btn">电源</string>

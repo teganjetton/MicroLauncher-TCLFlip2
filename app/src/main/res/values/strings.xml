@@ -1,5 +1,6 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="app_name">MicroLauncher</string>
+    <string name="notifications">Notifications</string>
     <string name="menu">Menu</string>
     <string name="contact">Contact</string>
     <string name="power_btn">Power</string>

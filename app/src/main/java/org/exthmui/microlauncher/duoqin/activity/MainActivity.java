@@ -1,28 +1,25 @@
 package org.exthmui.microlauncher.duoqin.activity;
 
+import static android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK;
+import static android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP;
+import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
+
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
-import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
-import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.View;
-import android.widget.Button;
 import android.widget.LinearLayout;
-import android.widget.TextClock;
-import android.widget.TextView;
 
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -31,18 +28,12 @@ import com.google.android.material.snackbar.Snackbar;
 
 import org.exthmui.microlauncher.duoqin.R;
 import org.exthmui.microlauncher.duoqin.databinding.ActivityMainBinding;
-import org.exthmui.microlauncher.duoqin.misc.ChineseCale;
 import org.exthmui.microlauncher.duoqin.widgets.CarrierTextView;
 import org.exthmui.microlauncher.duoqin.widgets.ClockViewManager;
 import org.exthmui.microlauncher.duoqin.widgets.DateTextView;
 import org.exthmui.microlauncher.duoqin.widgets.LunarDateTextView;
 
 import java.lang.reflect.Method;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import es.dmoral.toasty.Toasty;
 
@@ -60,6 +51,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     private LunarDateTextView lunarDate;
     private CarrierTextView carrier;
     String pound_func;
+    //   QuickSettingsContainer mQuickSettingsView;
 
     @SuppressLint("SetTextI18n")
     @Override
@@ -135,7 +127,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     private void checkDevice(){
         Log.d(TAG, "checkDevice: "+Build.BOARD);
         if(!Build.BOARD.equals("k61v1_64_bsp")){
-            Toasty.info(this,"非多亲设备，部分功能可能无法使用。",Toasty.LENGTH_SHORT).show();
+            Toasty.info(this,"This may not work on this device.",Toasty.LENGTH_SHORT).show();
         }
     }
 
@@ -190,7 +182,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                     Intent i = new Intent();
                     i.setAction("android.intent.action.MAIN");
                     i.addCategory("android.intent.category.APP_CONTACTS");
-                    i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    i.addFlags(FLAG_ACTIVITY_NEW_TASK);
                     startActivity(i);
                     break;
                 case R.id.menu:
@@ -214,69 +206,118 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     }
 
     public boolean onKeyUp(int keyCode, KeyEvent event){
-        if (keyCode == KeyEvent.KEYCODE_BACK) {
+        if (keyCode == KeyEvent.KEYCODE_SOFT_RIGHT) {
             Intent it = new Intent();
             it.setAction("android.intent.action.MAIN");
             it.addCategory("android.intent.category.APP_CONTACTS");
-            it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            it.addFlags(FLAG_ACTIVITY_NEW_TASK);
             startActivity(it);
+            return true;}
+        if (keyCode == KeyEvent.KEYCODE_SOFT_LEFT) {
+            Intent it = new Intent("com.tcl.notification");
+            //intent.addFlags(268468224);
+            it.addFlags(FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            startActivity(it);
+            //this.mAudioManager.playSoundEffect(0);
+            //this.needShowNotificationSpot = false;
+            //refreshMenuBar(this.mState);
             return true;}
         return false;
     }
 
+    //public boolean needShowNotificationSpot;
+
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         Log.d(TAG,"这个按键的KeyCode是 "+keyCode);
-           if(keyCode == KeyEvent.KEYCODE_DPAD_DOWN){
-                String methodName = "expandNotificationsPanel";
-                doInStatusBar(getApplicationContext(), methodName);
-                return true;}
-            else if (keyCode == KeyEvent.KEYCODE_DPAD_UP){
-               Intent it = new Intent();
-                it.setClassName("com.android.settings",
-                        "com.android.settings.Settings");
+        if(keyCode == KeyEvent.KEYCODE_DPAD_DOWN){
+            //f21p code below
+//                String methodName = "expandNotificationsPanel";
+//                doInStatusBar(getApplicationContext(), methodName);
+//                return true;
+            try {
+                Intent intent3 = new Intent();
+                intent3.setClassName("com.android.systemui", "com.tcl.recents.RecentsListActivity");
+                intent3.addFlags(FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_CLEAR_TOP);
+                //this.mAudioManager.playSoundEffect(0);
+                startActivity(intent3);
+            } catch (ActivityNotFoundException unused2) {
+                Log.e("Launcher", "listrecents activity not found");
+            }
+        }
+        else if (keyCode == KeyEvent.KEYCODE_DPAD_UP){
+            Intent it = new Intent();
+            it.setClassName("com.android.settings",
+                    "com.android.settings.Settings");
+            startActivity(it);
+            return true;}
+        else if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) {
+            try{
+                Intent it = new Intent();
+                it.setAction("android.intent.action.MAIN");
+                it.addCategory("android.intent.category.APP_BROWSER");
+                it.addFlags(FLAG_ACTIVITY_NEW_TASK);
                 startActivity(it);
-                return true;}
-            else if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) {
-                try{
-                    Intent it = new Intent();
-                    it.setAction("android.intent.action.MAIN");
-                    it.addCategory("android.intent.category.APP_BROWSER");
-                    it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    startActivity(it);
-                    Log.d(TAG,"5,4,3,2,1,三倍ice cream!!!!!");
-                }catch (Exception e){
-                    Log.d(TAG,"没有找到系统浏览器或者系统浏览器被禁用");
-                }
-           return true;}
-            else if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT){
-                try{
-                    Intent it = new Intent();
-                    it.setAction("android.intent.action.MAIN");
-                    it.addCategory("android.intent.category.APP_MESSAGING");
-                    it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    startActivity(it);
-                }catch (Exception e){
-                    Log.d(TAG,"没有找到系统短信或者系统短信被禁用");
-                }
-           return true;}
-           else if (keyCode == KeyEvent.KEYCODE_MENU ){
-               Snackbar.make(mainBinding.getRoot(),R.string.loading,Snackbar.LENGTH_SHORT).show();
-               Timer timer = new Timer();
-               timer.schedule(new TimerTask() {
-                   @Override
-                   public void run() {
-                       Intent menu_it = new Intent(MainActivity.this, AppListActivity.class);
-                       startActivity(menu_it);
-                   }
-               },500); // 延时0.5秒，不加延时的话应用列表的菜单误触我很难顶啊QAQ
-               return true;}
-           //突然想起来得把音量控制面板绑定到#键上
+                Log.d(TAG,"5,4,3,2,1,三倍ice cream!!!!!");
+            }catch (Exception e){
+                Log.d(TAG,"没有找到系统浏览器或者系统浏览器被禁用");
+            }
+            return true;}
+        else if (keyCode == KeyEvent.KEYCODE_DPAD_RIGHT){
+            try{
+                Intent it = new Intent();
+                it.setAction("android.intent.action.MAIN");
+                it.addCategory("android.intent.category.APP_MESSAGING");
+                it.addFlags(FLAG_ACTIVITY_NEW_TASK);
+                startActivity(it);
+            }catch (Exception e){
+                Log.d(TAG,"没有找到系统短信或者系统短信被禁用");
+            }
+            return true;}
+        else if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER){
+
+            Snackbar.make(mainBinding.getRoot(),R.string.loading,Snackbar.LENGTH_SHORT).show();
+            //    Timer timer = new Timer();
+            //    timer.schedule(new TimerTask() {
+            //        @Override
+            //       public void run() {
+            Intent menu_it = new Intent(MainActivity.this, AppListActivity.class);
+            menu_it.addFlags(FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(menu_it);
+            //      }
+            //  },500); // 延时0.5秒，不加延时的话应用列表的菜单误触我很难顶啊QAQ
+            return true;}
+        //突然想起来得把音量控制面板绑定到#
+        // com.android.launcher3.shortcuts
+           /*   TODO: -Use pound key to launch quicksettings
+                      -Figure out how quicksettings works
+                      -lol if anyone is looking at this just ignore this mess
+
+
+
            else if (keyCode == KeyEvent.KEYCODE_POUND ){
                if(pound_func.equals("volume")){
+
+                   try {
+                       Intent intent3 = new Intent();
+                       intent3.setClassName("org.exthmui.microlauncher.duoqin.quicksettings", "QuickSettingsContainer");
+                       intent3.addFlags(FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_CLEAR_TOP);
+                       //this.mAudioManager.playSoundEffect(0);
+                       startActivity(intent3);
+                       Toasty.error(this,R.string.ok,Toasty.LENGTH_LONG).show();
+                   } catch (ActivityNotFoundException unused2) {
+                       Log.e("Launcher", "listrecents activity not found");
+                   }
+
+
+            */
+                   /*
+
                    Intent vol_it = new Intent(MainActivity.this, VolumeChanger.class);
                    vol_it.addFlags(Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
                    startActivity(vol_it);
-               }else{
+
+                   } */
+               /*else{
                    if(PackageManager.PERMISSION_GRANTED == ContextCompat.checkSelfPermission(this,android.Manifest.permission.CAMERA)){
                        if(torch){
                            try {
@@ -296,45 +337,60 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                            }
                            torch=true;
                        }
-                   }else{
+                   /
+                    else{
                        Toasty.error(this,R.string.permission_denied,Toasty.LENGTH_LONG).show();
-                   }
+                   }}
                }
                return true;}
-           else if(keyCode >=7 && keyCode <= 16){
-               if(dialpad_enable){
-                   try{
-                       Intent it = new Intent();
-                       it.setClassName("com.android.dialer","com.duoqin.dialer.DialpadActivity");
-                       it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                       startActivity(it);
-                   }catch (Exception e){
-                       Intent it = new Intent();
-                       it.setClassName("com.android.dialer","com.android.dialer.main.impl.MainActivity");
-                       it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                       startActivity(it);
-                       Log.e(TAG,"没有找到拨号盘");
-                   }
-               }
-           }
-            else if(keyCode == KeyEvent.KEYCODE_STAR){
-                if(xiaoai_enable){
-                    try{
-                        Intent ai_intent = new Intent();
-                        ai_intent.setClassName("com.duoqin.ai","com.duoqin.ai.MainActivity");
-                        ai_intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                        startActivity(ai_intent);
-                    }catch (Exception e){
-                        e.printStackTrace();
-                        Toasty.error(getApplicationContext(),R.string.err_pkg_not_found,Toasty.LENGTH_LONG).show();
-                    }
+
+                */
+        else if(keyCode >=7 && keyCode <= 16){
+            if(dialpad_enable){
+                try{
+                    Intent it = new Intent();
+                    it.setClassName("com.android.dialer","com.duoqin.dialer.DialpadActivity");
+                    it.addFlags(FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(it);
+                }catch (Exception e){
+                    Intent it = new Intent();
+                    it.setClassName("com.android.dialer","com.android.dialer.main.impl.MainActivity");
+                    it.addFlags(FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(it);
+                    Log.e(TAG,"没有找到拨号盘");
                 }
-           return true;}
+            }
+        }
+        else if(keyCode == KeyEvent.KEYCODE_STAR){
+            //if(xiaoai_enable){
+            //star_intent.setClassName("im.molly.app", "im.molly.app.MAIN");
+            //change to Molly
+            //ai_intent.setClassName("com.duoqin.ai","com.duoqin.ai.MainActivity");
+            //ai_intent.setAction("im.molly.app");//,"com.duoqin.ai.MainActivity");
+
+            // changed star key (*) to Molly app (FOSS Signal)
+            PackageManager manager1 = this.getPackageManager();
+            try{
+                Intent star_intent = manager1.getLaunchIntentForPackage("im.molly.app");
+                if (star_intent == null){
+                    return false;
+
+                }
+                star_intent.addCategory(Intent.CATEGORY_LAUNCHER);
+                star_intent.addFlags(FLAG_ACTIVITY_NEW_TASK);
+                startActivity(star_intent);
+
+            }catch (Exception e){
+                e.printStackTrace();
+                Toasty.error(getApplicationContext(),R.string.err_pkg_not_found,Toasty.LENGTH_LONG).show();
+            }
+            // }
+            return true;}
         return false;
     }
     /*
-    * 下拉通知栏
-    */
+     * 下拉通知栏
+     */
     private static void doInStatusBar(Context mContext, String methodName) {
         try {
             @SuppressLint("WrongConstant") Object service = mContext.getSystemService("statusbar");
